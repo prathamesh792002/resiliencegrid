@@ -75,13 +75,13 @@ const AgentSwarmMonitor = () => {
 
         // Fallback activation
         setTimeout(() => {
-            const fakeAgents = Array.from({ length: 100 }, (_, i) => ({
+            const newAgents: Agent[] = Array.from({ length: 100 }, (_, i) => ({
                 id: `A${String(i + 1).padStart(3, '0')}`,
-                status: 'active',
+                status: 'active' as const,
                 role: ['Social Media', 'News', 'Satellite', 'IoT'][i % 4],
                 lastPing: new Date().toISOString()
             }));
-            setAgents(fakeAgents);
+            setAgents(newAgents);
             setActivated(true);
             setIsActivating(false);
             console.log("✅ Agents activated (fallback)");
