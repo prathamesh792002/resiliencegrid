@@ -4,7 +4,6 @@ services:
     name: resiliencegrid-backend
     runtime: docker
     dockerfilePath: ./Dockerfile
-    dockerContext: ./backend
     envVars:
       - key: DATABASE_URL
         fromDatabase:
