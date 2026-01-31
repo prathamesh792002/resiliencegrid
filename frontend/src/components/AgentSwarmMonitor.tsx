@@ -1,5 +1,6 @@
 import React, { useEffect, useState, memo } from 'react';
 import { useSwarmStore, Agent } from '../stores/swarmStore';
+import { useSwarmSocket } from '../hooks/useSwarmSocket';
 
 // Memoized agent cell component to prevent unnecessary re-renders
 const AgentCell = memo(({ agent, onClick }: { agent: Agent; onClick: (agent: Agent) => void }) => {
