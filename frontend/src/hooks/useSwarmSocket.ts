@@ -6,7 +6,7 @@ const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/api/v1/ws/swa
 
 export const useSwarmSocket = () => {
     const wsRef = useRef<WebSocket | null>(null);
-    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {
         updateAgentStatus,
         setAgents,
