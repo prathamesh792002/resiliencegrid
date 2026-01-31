@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import useSwarmStore from '../stores/swarmStore';
+import useSwarmStore, { Agent } from '../stores/swarmStore';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'wss://resiliencegrid-backend-eg1i.onrender.com/api/v1/ws/swarm';
 
