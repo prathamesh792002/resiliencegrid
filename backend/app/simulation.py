@@ -1,0 +1,155 @@
+"""Disaster Simulation Module for Testing Agent Responses"""
+
+import asyncio
+import random
+from datetime import datetime
+from typing import Dict, Any, List
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class DisasterSimulation:
+    """Simulates disaster events for testing without real API connections"""
+    
+    def __init__(self):
+        self.scenarios = [
+            {
+                "type": "flood",
+                "location": {"lat": 29.7604, "lng": -95.3698},
+                "severity": "high",
+                "name": "Houston Flooding"
+            },
+            {
+                "type": "fire",
+                "location": {"lat": 34.0522, "lng": -118.2437},
+                "severity": "critical",
+                "name": "Los Angeles Wildfire"
+            },
+            {
+                "type": "earthquake",
+                "location": {"lat": 37.7749, "lng": -122.4194},
+                "severity": "high",
+                "name": "San Francisco Earthquake"
+            },
+            {
+                "type": "flood",
+                "location": {"lat": 40.7128, "lng": -74.0060},
+                "severity": "medium",
+                "name": "New York Storm Surge"
+            },
+            {
+                "type": "fire",
+                "location": {"lat": 36.7783, "lng": -119.4179},
+                "severity": "critical",
+                "name": "Central Valley Fire"
+            },
+        ]
+        
+        self.running = False
+        self.task = None
+    
+    async def inject_mock_events(self, manager):
+        """Periodically inject mock disaster events"""
+        self.running = True
+        logger.info("🎭 Simulation mode started - injecting mock disasters")
+        
+        while self.running:
+            try:
+                await asyncio.sleep(10)  # Every 10 seconds
+                
+                # Select random scenario
+                scenario = random.choice(self.scenarios)
+                disaster_event = {
+                    "id": f"D{int(datetime.utcnow().timestamp())}",
+                    "type": scenario["type"],
+                    "location": scenario["location"],
+                    "severity": scenario["severity"],
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "affectedArea": random.randint(20, 150),
+                    "name": scenario["name"]
+                }
+                
+                # Broadcast disaster detection
+                await manager.broadcast({
+                    "type": "disaster_detected",
+                    "data": disaster_event,
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+                
+                logger.info(f"📍 Simulated disaster: {scenario['name']}")
+                
+                # Activate random agents to respond
+                affected_agents = random.sample(range(1, 101), random.randint(5, 15))
+                
+                for agent_id in affected_agents:
+                    agent_status = random.choice(["active", "processing", "alert"])
+                    await manager.broadcast({
+                        "type": "agent_status",
+                        "data": {
+                            "id": f"A{agent_id:03d}",
+                            "status": agent_status,
+                            "task": f"Analyzing {scenario['type']} event..."
+                        },
+                        "timestamp": datetime.utcnow().isoformat()
+                    })
+                
+                # Generate mock report after disaster
+                await asyncio.sleep(5)
+                await self.generate_mock_report(manager, disaster_event)
+                
+            except Exception as e:
+                logger.error(f"Error in simulation: {e}")
+    
+    async def generate_mock_report(self, manager, disaster: Dict[str, Any]):
+        """Generate a mock situation report"""
+        report = {
+            "id": f"R{int(datetime.utcnow().timestamp())}",
+            "title": f"Situation Report: {disaster['name']}",
+            "content": f"""# {disaster['name']}
+
+## Overview
+Emergency response activated for {disaster['type']} event detected at {disaster['timestamp']}.
+
+## Status
+- **Severity**: {disaster['severity'].upper()}
+- **Location**: Lat {disaster['location']['lat']}, Lng {disaster['location']['lng']}
+- **Affected Area**: {disaster.get('affectedArea', 'Unknown')} km²
+
+## Agent Response
+Multiple AI agents activated for assessment and coordination:
+- Social media monitoring agents tracking public reports
+- Satellite imagery analysis in progress
+- IoT sensors providing real-time data
+- Resource allocation agents coordinating response
+
+## Recommendations
+1. Continue monitoring situation
+2. Prepare evacuation routes if needed
+3. Coordinate with local emergency services
+
+---
+*Auto-generated by ResilienceGrid AI System*
+""",
+            "timestamp": datetime.utcnow().isoformat(),
+            "confidence": random.randint(75, 98),
+            "affectedArea": f"{disaster.get('affectedArea', 50)} km²",
+            "critical": disaster['severity'] == 'critical'
+        }
+        
+        await manager.broadcast({
+            "type": "new_report",
+            "data": report,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+        
+        logger.info(f"📝 Generated mock report for {disaster['name']}")
+    
+    def stop(self):
+        """Stop the simulation"""
+        self.running = False
+        logger.info("🛑 Simulation mode stopped")
+
+
+# Global simulation instance
+simulation = DisasterSimulation()

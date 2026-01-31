@@ -1,0 +1,63 @@
+# Railway deployment configuration
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    envs:
+      - POSTGRES_DB=resiliencegrid
+      - POSTGRES_USER=rg_user
+      - POSTGRES_PASSWORD=${{POSTGRES_PASSWORD}}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rg_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    envs:
+      - DATABASE_URL=postgresql://rg_user:${{POSTGRES_PASSWORD}}@postgres:5432/resiliencegrid
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SECRET_KEY=${{SECRET_KEY}}
+      - SIMULATION_MODE=${{SIMULATION_MODE}}
+      - DEBUG=false
+      - MAX_AGENTS=100
+      - PORT=8000
+    healthcheckPath: /health
+    dependsOn:
+      - postgres
+      - redis
+    command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+  # React Frontend with Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.railway
+      args:
+        - VITE_API_URL=${{RAILWAY_PUBLIC_DOMAIN}}
+    healthcheckPath: /health
+    dependsOn:
+      - backend
+
+# Persistent volumes
+volumes:
+  pgdata:
+  redisdata:
