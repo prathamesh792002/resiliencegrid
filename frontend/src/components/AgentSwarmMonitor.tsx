@@ -42,6 +42,7 @@ export const AgentSwarmMonitor: React.FC = () => {
     const { send } = useSwarmSocket();
     const [filter, setFilter] = useState<FilterType>('all');
     const [isSwarmActivated, setIsSwarmActivated] = useState(false);
+    const [isActivating, setIsActivating] = useState(false);
 
     useEffect(() => {
         // Update stats every 2 seconds
@@ -74,9 +75,25 @@ export const AgentSwarmMonitor: React.FC = () => {
         console.log('Agent clicked:', agent);
     };
 
-    const handleActivateSwarm = () => {
-        send({ type: 'ACTIVATE_SWARM' });
-        setIsSwarmActivated(true);
+    const handleActivateSwarm = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log('🚀 Sending activation command...');
+        setIsActivating(true);
+
+        // Send activation command with correct format
+        send({
+            action: 'activate_swarm',
+            timestamp: new Date().toISOString()
+        });
+
+        // Update UI state
+        setTimeout(() => {
+            setIsSwarmActivated(true);
+            setIsActivating(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 500);
     };
 
     return (
@@ -92,12 +109,15 @@ export const AgentSwarmMonitor: React.FC = () => {
             {!isSwarmActivated && (
                 <div className="p-3 border-b border-gray-800">
                     <button
+                        type="button"
                         onClick={handleActivateSwarm}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white font-mono font-bold 
-              py-3 px-4 rounded-lg transition-colors text-sm uppercase tracking-wider
-              shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                        disabled={isActivating}
+                        className={`w-full font-mono font-bold py-3 px-4 rounded-lg transition-all text-sm uppercase tracking-wider shadow-lg ${isActivating
+                                ? 'bg-yellow-600 cursor-wait'
+                                : 'bg-green-600 hover:bg-green-700 hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]'
+                            } text-white disabled:opacity-75`}
                     >
-                        🚀 ACTIVATE SWARM
+                        {isActivating ? '⏳ ACTIVATING...' : '🚀 ACTIVATE SWARM'}
                     </button>
                 </div>
             )}
