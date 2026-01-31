@@ -39,7 +39,7 @@ type FilterType = 'all' | 'active' | 'alert' | 'processing';
 
 export const AgentSwarmMonitor: React.FC = () => {
     const { agents, stats, setSelectedAgent, updateStats } = useSwarmStore();
-    const { send } = useSwarmSocket();
+    const { send, socket } = useSwarmSocket();
     const [filter, setFilter] = useState<FilterType>('all');
     const [isSwarmActivated, setIsSwarmActivated] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
@@ -113,8 +113,8 @@ export const AgentSwarmMonitor: React.FC = () => {
                         onClick={handleActivateSwarm}
                         disabled={isActivating}
                         className={`w-full font-mono font-bold py-3 px-4 rounded-lg transition-all text-sm uppercase tracking-wider shadow-lg ${isActivating
-                                ? 'bg-yellow-600 cursor-wait'
-                                : 'bg-green-600 hover:bg-green-700 hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]'
+                            ? 'bg-yellow-600 cursor-wait'
+                            : 'bg-green-600 hover:bg-green-700 hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]'
                             } text-white disabled:opacity-75`}
                     >
                         {isActivating ? '⏳ ACTIVATING...' : '🚀 ACTIVATE SWARM'}
