@@ -38,7 +38,9 @@ type FilterType = 'all' | 'active' | 'alert' | 'processing';
 
 export const AgentSwarmMonitor: React.FC = () => {
     const { agents, stats, setSelectedAgent, updateStats } = useSwarmStore();
+    const { send } = useSwarmSocket();
     const [filter, setFilter] = useState<FilterType>('all');
+    const [isSwarmActivated, setIsSwarmActivated] = useState(false);
 
     useEffect(() => {
         // Update stats every 2 seconds
@@ -71,14 +73,36 @@ export const AgentSwarmMonitor: React.FC = () => {
         console.log('Agent clicked:', agent);
     };
 
-    return (
-        <div className="h-full flex flex-col bg-eoc-surface rounded-lg border border-gray-800 p-4">
-            {/* Header */}
-            <div className="mb-4">
-                <h2 className="text-cyan-400 font-mono text-sm font-semibold uppercase tracking-wider mb-3">
-                    Agent Swarm Status
-                </h2>
+    const handleActivateSwarm = () => {
+        send({ type: 'ACTIVATE_SWARM' });
+        setIsSwarmActivated(true);
+    };
 
+    return (
+        <div className="h-full flex flex-col bg-eoc-surface rounded-lg border border-gray-800 overflow-hidden">
+            {/* Header */}
+            <div className="p-3 border-b border-gray-800">
+                <h2 className="text-cyan-400 font-mono text-sm font-semibold uppercase tracking-wider">
+                    Agent Swarm Monitor
+                </h2>
+            </div>
+
+            {/* Activate Swarm Button */}
+            {!isSwarmActivated && (
+                <div className="p-3 border-b border-gray-800">
+                    <button
+                        onClick={handleActivateSwarm}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-mono font-bold 
+              py-3 px-4 rounded-lg transition-colors text-sm uppercase tracking-wider
+              shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        🚀 ACTIVATE SWARM
+                    </button>
+                </div>
+            )}
+
+            {/* Stats & Filters */}
+            <div className="p-3 border-b border-gray-800">
                 {/* Stats Bar */}
                 <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="bg-eoc-elevated rounded p-2">
@@ -107,8 +131,8 @@ export const AgentSwarmMonitor: React.FC = () => {
                             key={filterType}
                             onClick={() => setFilter(filterType)}
                             className={`px-3 py-1 rounded text-xs font-mono uppercase transition-colors ${filter === filterType
-                                    ? 'bg-cyan-600 text-white'
-                                    : 'bg-eoc-elevated text-text-secondary hover:bg-gray-700'
+                                ? 'bg-cyan-600 text-white'
+                                : 'bg-eoc-elevated text-text-secondary hover:bg-gray-700'
                                 }`}
                         >
                             {filterType}
