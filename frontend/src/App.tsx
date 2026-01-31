@@ -1,7 +1,7 @@
 import Layout from './components/Layout';
 import AgentSwarmMonitor from './components/AgentSwarmMonitor';
-import DisasterMap from './components/DisasterMap';
-import AutoReportPanel from './components/AutoReportPanel';
+import { DisasterMap } from './components/DisasterMap';
+import { AutoReportPanel } from './components/AutoReportPanel';
 import './index.css';
 
 function App() {
