@@ -39,7 +39,7 @@ type FilterType = 'all' | 'active' | 'alert' | 'processing';
 
 export const AgentSwarmMonitor: React.FC = () => {
     const { agents, stats, setSelectedAgent, updateStats } = useSwarmStore();
-    const { send, socket } = useSwarmSocket();
+    const { socket } = useSwarmSocket();
     const [filter, setFilter] = useState<FilterType>('all');
     const [isSwarmActivated, setIsSwarmActivated] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
@@ -71,56 +71,68 @@ export const AgentSwarmMonitor: React.FC = () => {
 
     const handleAgentClick = (agent: Agent) => {
         setSelectedAgent(agent);
-        // TODO: Open AgentDetailModal
         console.log('Agent clicked:', agent);
-    };
-
-    const handleActivateSwarm = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        console.log('🚀 Sending activation command...');
-        setIsActivating(true);
-
-        // Send activation command with correct format
-        send({
-            action: 'activate_swarm',
-            timestamp: new Date().toISOString()
-        });
-
-        // Update UI state
-        setTimeout(() => {
-            setIsSwarmActivated(true);
-            setIsActivating(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 500);
     };
 
     return (
         <div className="h-full flex flex-col bg-eoc-surface rounded-lg border border-gray-800 overflow-hidden">
+            {/* Fixed Activate Button */}
+            {!isSwarmActivated && (
+                <button
+                    type="button"
+                    style={{
+                        position: 'fixed',
+                        top: '20px',
+                        left: '20px',
+                        zIndex: 9999,
+                        padding: '15px 30px',
+                        backgroundColor: isActivating ? '#f59e0b' : '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: isActivating ? 'wait' : 'pointer',
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        fontFamily: 'JetBrains Mono, monospace'
+                    }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (isActivating) return;
+
+                        console.log("🚨 BUTTON CLICKED");
+                        setIsActivating(true);
+
+                        // Send activation via WebSocket
+                        if (socket && socket.readyState === WebSocket.OPEN) {
+                            console.log("📤 Sending to WebSocket");
+                            socket.send(JSON.stringify({
+                                action: 'activate_swarm',
+                                timestamp: new Date().toISOString()
+                            }));
+                        } else {
+                            console.error("❌ WebSocket not open, state:", socket?.readyState);
+                        }
+
+                        // Keep page at top
+                        setTimeout(() => window.scrollTo(0, 0), 50);
+                        setTimeout(() => window.scrollTo(0, 0), 200);
+                        setTimeout(() => {
+                            setIsSwarmActivated(true);
+                            setIsActivating(false);
+                        }, 1000);
+                    }}
+                    disabled={isActivating}
+                >
+                    {isActivating ? '⏳ ACTIVATING...' : '🚀 ACTIVATE SWARM'}
+                </button>
+            )}
+
             {/* Header */}
             <div className="p-3 border-b border-gray-800">
                 <h2 className="text-cyan-400 font-mono text-sm font-semibold uppercase tracking-wider">
                     Agent Swarm Monitor
                 </h2>
             </div>
-
-            {/* Activate Swarm Button */}
-            {!isSwarmActivated && (
-                <div className="p-3 border-b border-gray-800">
-                    <button
-                        type="button"
-                        onClick={handleActivateSwarm}
-                        disabled={isActivating}
-                        className={`w-full font-mono font-bold py-3 px-4 rounded-lg transition-all text-sm uppercase tracking-wider shadow-lg ${isActivating
-                            ? 'bg-yellow-600 cursor-wait'
-                            : 'bg-green-600 hover:bg-green-700 hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]'
-                            } text-white disabled:opacity-75`}
-                    >
-                        {isActivating ? '⏳ ACTIVATING...' : '🚀 ACTIVATE SWARM'}
-                    </button>
-                </div>
-            )}
 
             {/* Stats & Filters */}
             <div className="p-3 border-b border-gray-800">
@@ -163,7 +175,7 @@ export const AgentSwarmMonitor: React.FC = () => {
             </div>
 
             {/* Agent Grid */}
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto p-3">
                 <div className="grid grid-cols-10 gap-1.5">
                     {gridAgents.map((agent) => (
                         <AgentCell key={agent.id} agent={agent} onClick={handleAgentClick} />
@@ -172,7 +184,7 @@ export const AgentSwarmMonitor: React.FC = () => {
             </div>
 
             {/* Legend */}
-            <div className="mt-4 pt-4 border-t border-gray-800">
+            <div className="p-3 border-t border-gray-800">
                 <div className="text-text-secondary text-xs font-mono mb-2">Status Legend</div>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                     <div className="flex items-center gap-2">
